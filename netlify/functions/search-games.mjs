@@ -30,6 +30,11 @@ export default async (req) => {
   }
 };
 
+const WIKIMEDIA_HEADERS = {
+  "User-Agent": "CheatVault/1.0 (video game search; local development)",
+  "Accept": "application/json",
+};
+
 function json(body, statusCode = 200) {
   return new Response(JSON.stringify(body), {
     status: statusCode,
@@ -63,7 +68,7 @@ async function searchWikidataOnce(search) {
   wikidataUrl.searchParams.set("type", "item");
   wikidataUrl.searchParams.set("limit", "10");
 
-  const response = await fetch(wikidataUrl);
+  const response = await fetch(wikidataUrl, { headers: WIKIMEDIA_HEADERS });
   const data = await readJson(response);
   if (!Array.isArray(data?.search)) return [];
 
@@ -90,7 +95,7 @@ async function searchWikipediaOnce(search) {
   wikiUrl.searchParams.set("format", "json");
   wikiUrl.searchParams.set("origin", "*");
 
-  const response = await fetch(wikiUrl);
+  const response = await fetch(wikiUrl, { headers: WIKIMEDIA_HEADERS });
   const data = await readJson(response);
   const hits = Array.isArray(data?.query?.search) ? data.query.search : [];
   const pages = await loadWikipediaPageData(hits.slice(0, 10).map((hit) => hit.title));
@@ -99,12 +104,13 @@ async function searchWikipediaOnce(search) {
   for (const hit of hits) {
     const page = pages[hit.title.toLowerCase()] || null;
     if (!isGamePage(page, hit.title)) continue;
+    const cover = page?.thumbnail?.source || page?.original?.source || await loadWikipediaSummaryCover(page?.title || hit.title);
 
     results.push({
       id: `wiki-${slugify(hit.title)}`,
       title: page?.title || hit.title,
       description: page?.description || "Video game",
-      cover: page?.thumbnail?.source || page?.original?.source || null,
+      cover,
       source: "wikipedia",
     });
   }
@@ -126,7 +132,7 @@ async function loadWikipediaPageData(titles) {
     url.searchParams.set("format", "json");
     url.searchParams.set("origin", "*");
 
-    const response = await fetch(url);
+    const response = await fetch(url, { headers: WIKIMEDIA_HEADERS });
     if (!response.ok) return {};
     const data = await readJson(response);
     const pages = data?.query?.pages || {};
@@ -161,7 +167,7 @@ async function loadCovers(results) {
     url.searchParams.set("format", "json");
     url.searchParams.set("origin", "*");
 
-    const response = await fetch(url);
+    const response = await fetch(url, { headers: WIKIMEDIA_HEADERS });
     const data = await readJson(response);
     const entities = data?.entities || {};
     const covers = {};
@@ -199,7 +205,7 @@ async function loadWikipediaSummaryCover(title) {
   try {
     if (!title) return null;
     const url = new URL(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
-    const response = await fetch(url);
+    const response = await fetch(url, { headers: WIKIMEDIA_HEADERS });
     if (!response.ok) return null;
     const data = await readJson(response);
     return data?.thumbnail?.source || data?.originalimage?.source || null;
@@ -233,11 +239,12 @@ async function searchHintedGames(query) {
   for (const title of hint.titles) {
     const page = pages[title.toLowerCase()] || null;
     if (!page) continue;
+    const cover = page?.thumbnail?.source || page?.original?.source || await loadWikipediaSummaryCover(page?.title || title);
     results.push({
       id: `wiki-${slugify(title)}`,
       title: page.title || title,
       description: page.description || "Video game",
-      cover: page.thumbnail?.source || page.original?.source || null,
+      cover,
       source: "wikipedia",
     });
   }

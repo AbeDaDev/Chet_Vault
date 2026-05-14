@@ -45,24 +45,6 @@ const FEATURED_GAMES = [
   { id: "age-of-empires-2", title: "Age of Empires II", platform: "PC", year: 1999, cover: "https://upload.wikimedia.org/wikipedia/en/5/56/Age_of_Empires_II_-_The_Age_of_Kings_Coverart.png" },
 ];
 
-const SEARCH_BACKUP_GAMES = [
-  { id: "toy-story-1", title: "Toy Story (video game)", platform: "SNES / Genesis / PC", year: 1995, cover: "https://upload.wikimedia.org/wikipedia/en/e/e5/Toy_Story_Video_Game_SNES.png" },
-  { id: "toy-story-2", title: "Toy Story 2 (video game)", platform: "PS1 / N64 / GBC", year: 1999, cover: "https://upload.wikimedia.org/wikipedia/en/5/5b/ToyStory2_videogame_gbc_cover.jpg" },
-  { id: "toy-story-3", title: "Toy Story 3 (video game)", platform: "PS3 / Xbox 360 / Wii", year: 2010, cover: "https://upload.wikimedia.org/wikipedia/en/6/6c/Toy_Story_3_Cover_Art.jpg" },
-  { id: "toy-story-mania", title: "Toy Story Mania!", platform: "Wii / PS3 / Xbox 360", year: 2009, cover: "https://upload.wikimedia.org/wikipedia/en/9/9e/Toy_Story_Mania.jpg" },
-  { id: "toy-story-racer", title: "Toy Story Racer", platform: "PS1", year: 2000, cover: "https://upload.wikimedia.org/wikipedia/en/e/e1/Toy_Story_Racer.jpg" },
-  { id: "toy-story-2-buzz", title: "Toy Story 2: Buzz Lightyear to the Rescue", platform: "N64 / PS1 / PC", year: 1999, cover: "https://upload.wikimedia.org/wikipedia/en/2/21/Buzz_Lightyear_to_the_Rescue_art.png" },
-  { id: "super-mario-world", title: "Super Mario World", platform: "SNES", year: 1990, cover: "https://upload.wikimedia.org/wikipedia/en/a/a0/Super_Mario_World_Coverart.png" },
-  { id: "super-mario-64", title: "Super Mario 64", platform: "N64", year: 1996, cover: "https://upload.wikimedia.org/wikipedia/en/1/1b/Super_Mario_64.jpg" },
-  { id: "pokemon-yellow", title: "Pokémon Yellow", platform: "Game Boy", year: 1998, cover: "https://upload.wikimedia.org/wikipedia/en/b/bd/Pok%C3%A9mon_Yellow_Version.png" },
-  { id: "pokemon-silver", title: "Pokémon Silver", platform: "Game Boy Color", year: 1999, cover: "https://upload.wikimedia.org/wikipedia/en/3/3c/Pokemon_Silver.png" },
-  { id: "final-fantasy-vii", title: "Final Fantasy VII", platform: "PS1 / PC", year: 1997, cover: "https://upload.wikimedia.org/wikipedia/en/5/5f/Final_Fantasy_VII_Box_Art.jpg" },
-  { id: "half-life", title: "Half-Life", platform: "PC", year: 1998, cover: "https://upload.wikimedia.org/wikipedia/en/f/fa/Half-Life_Cover_Art.jpg" },
-  { id: "zelda-a-link-to-the-past", title: "The Legend of Zelda: A Link to the Past", platform: "SNES", year: 1991, cover: "https://upload.wikimedia.org/wikipedia/en/3/3b/The_Legend_of_Zelda_A_Link_to_the_Past_SNES_Game_Cover.jpg" },
-  { id: "metroid", title: "Metroid", platform: "NES", year: 1986, cover: "https://upload.wikimedia.org/wikipedia/en/3/37/Metroid_cover.jpg" },
-  { id: "street-fighter-alpha-3", title: "Street Fighter Alpha 3", platform: "Arcade / PS1", year: 1998, cover: "https://upload.wikimedia.org/wikipedia/en/3/3c/Street_Fighter_Alpha_3_arcade_flyer.jpg" },
-];
-
 const PLATFORMS = ["All", "Game Boy", "NES", "SNES", "N64", "PS1", "PS2", "PS3", "PS4", "PC", "Mac", "Xbox", "Xbox 360", "Xbox One", "Sega Genesis", "Arcade", "Multi", "Console"];
 
 // ── Storage helpers ─────────────────────────────────────────────────────────
@@ -110,6 +92,40 @@ async function saveCheatCache(cache) {
     if (!storage) return;
     await storage.set("cheat-vault-cache", JSON.stringify(cache));
   } catch {}
+}
+
+async function searchGames(query, signal) {
+  const endpoints = [
+    `/api/search-games?q=${encodeURIComponent(query)}`,
+    `/.netlify/functions/search-games?q=${encodeURIComponent(query)}`,
+  ];
+
+  let lastError = null;
+
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(endpoint, { signal });
+      const raw = await res.text();
+      let data = null;
+
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        data = null;
+      }
+
+      if (res.ok) {
+        return Array.isArray(data?.results) ? data.results : [];
+      }
+
+      lastError = new Error(data?.error || `Search failed (${res.status}).`);
+    } catch (error) {
+      if (error?.name === "AbortError") throw error;
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error("Search could not load game results.");
 }
 
 // ── Pixel / scanline CSS ────────────────────────────────────────────────────
@@ -516,7 +532,6 @@ export default function CheatVault() {
   const [query, setQuery] = useState("");
   const [platform, setPlatform] = useState("All");
   const [favorites, setFavorites] = useState([]);
-  const [games, setGames] = useState([...FEATURED_GAMES, ...SEARCH_BACKUP_GAMES]);
   const [selected, setSelected] = useState(null);
   const [cheats, setCheats] = useState(null);
   const [cheatLoading, setCheatLoading] = useState(false);
@@ -527,6 +542,8 @@ export default function CheatVault() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState(null);
 
+  const games = FEATURED_GAMES;
+
   // Load persisted data
   useEffect(() => {
     (async () => {
@@ -535,10 +552,6 @@ export default function CheatVault() {
       setCache(ch);
       setStorageReady(true);
     })();
-  }, []);
-
-  useEffect(() => {
-    setGames([...FEATURED_GAMES, ...SEARCH_BACKUP_GAMES]);
   }, []);
 
   useEffect(() => {
@@ -557,14 +570,8 @@ export default function CheatVault() {
       setSearchLoading(true);
       setSearchError(null);
       try {
-        const res = await fetch(`/api/search-games?q=${encodeURIComponent(q)}`, {
-          signal: controller.signal,
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data?.error || "Search failed.");
-        }
-        setRemoteResults(Array.isArray(data.results) ? data.results : []);
+        const results = await searchGames(q, controller.signal);
+        setRemoteResults(results);
       } catch (error) {
         if (error?.name !== "AbortError") {
           setSearchError("Search could not load game results.");
@@ -591,7 +598,7 @@ export default function CheatVault() {
 
   const isFav = (id) => favorites.some(f => f.id === id);
   const showingRemoteSearch = tab === "browse" && query.trim().length > 0;
-  const browseItems = showingRemoteSearch && remoteResults.length > 0 ? remoteResults : filtered;
+  const browseItems = showingRemoteSearch ? remoteResults : filtered;
 
   const toggleFav = (game, e) => {
     e?.stopPropagation();
