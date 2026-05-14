@@ -28,7 +28,7 @@ export default async (req) => {
         },
         {
           role: "user",
-          content: `List the most famous or useful cheat codes for "${game.title}"${game.platform || game.year || game.description ? ` (${[game.platform, game.year, game.description].filter(Boolean).join(', ')})` : ''}. Include 5-12 cheats. If a platform has multiple input methods, pick the most common one.`,
+          content: `List the most famous or useful cheat codes for "${game.title}"${game.platform || game.year || game.description ? ` (${[game.platform, game.year, game.description].filter(Boolean).join(', ')})` : ''}. Include 5-12 cheats. For every cheat, include the console or platform in a "console" field. If a cheat works on multiple versions, pick the most common one.`,
         },
       ],
       text: {
@@ -51,8 +51,9 @@ export default async (req) => {
                     code: { type: "string" },
                     effect: { type: "string" },
                     howTo: { type: "string" },
+                    console: { type: "string" },
                   },
-                  required: ["code", "effect", "howTo"],
+                  required: ["code", "effect", "howTo", "console"],
                 },
               },
             },

@@ -1,27 +1,51 @@
 import { useState, useEffect } from "react";
 
 const ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
+const DEFAULT_COVER =
+  'data:image/svg+xml;charset=utf-8,' +
+  encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#1a1a30" />
+          <stop offset="100%" stop-color="#090912" />
+        </linearGradient>
+        <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#00ffcc" />
+          <stop offset="100%" stop-color="#ff3c6e" />
+        </linearGradient>
+      </defs>
+      <rect width="300" height="400" rx="8" fill="url(#bg)" />
+      <path d="M42 52h216v296H42z" fill="none" stroke="url(#accent)" stroke-width="6" opacity=".8" />
+      <circle cx="150" cy="150" r="54" fill="none" stroke="#ffe600" stroke-width="8" opacity=".95" />
+      <rect x="108" y="220" width="84" height="18" rx="9" fill="#00ffcc" opacity=".9" />
+      <rect x="96" y="255" width="108" height="12" rx="6" fill="#2a2a44" />
+      <path d="M70 330l46-32 34 24 80-60 40 28" fill="none" stroke="#ff3c6e" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+      <circle cx="224" cy="98" r="10" fill="#00ffcc" />
+      <circle cx="76" cy="98" r="10" fill="#ff3c6e" />
+    </svg>
+  `);
 
 // ── Seed game database ──────────────────────────────────────────────────────
-const GAME_DB = [
-  { id: "gta-sa", title: "GTA: San Andreas", platform: "PS2 / PC / Xbox", year: 2004, cover: "https://upload.wikimedia.org/wikipedia/en/3/33/San_Andreas_poster.jpg" },
-  { id: "mortal-kombat-11", title: "Mortal Kombat 11", platform: "Multi", year: 2019, cover: "https://upload.wikimedia.org/wikipedia/en/4/43/MK11_Cover_Art.jpg" },
-  { id: "sonic-3", title: "Sonic the Hedgehog 3", platform: "Sega Genesis", year: 1994, cover: "https://upload.wikimedia.org/wikipedia/en/8/8b/Sonic_the_Hedgehog_3_US_cover.jpg" },
-  { id: "doom-1993", title: "DOOM (1993)", platform: "PC / Multi", year: 1993, cover: "https://upload.wikimedia.org/wikipedia/en/5/57/Doom_cover_art.jpg" },
-  { id: "zelda-ocarina", title: "The Legend of Zelda: Ocarina of Time", platform: "N64", year: 1998, cover: "https://upload.wikimedia.org/wikipedia/en/5/57/The_Legend_of_Zelda_Ocarina_of_Time.jpg" },
-  { id: "street-fighter-2", title: "Street Fighter II", platform: "SNES / Arcade", year: 1991, cover: "https://upload.wikimedia.org/wikipedia/en/b/b4/Street_Fighter_II_SNES_cover.jpg" },
-  { id: "gta-vice-city", title: "GTA: Vice City", platform: "PS2 / PC", year: 2002, cover: "https://upload.wikimedia.org/wikipedia/en/b/b1/Grand_Theft_Auto_Vice_City_cover.jpg" },
-  { id: "resident-evil-2", title: "Resident Evil 2 (1998)", platform: "PS1 / PC", year: 1998, cover: "https://upload.wikimedia.org/wikipedia/en/6/68/Resident_Evil_2_%281998%29_cover_art.jpg" },
-  { id: "tony-hawk-pro-skater-2", title: "Tony Hawk's Pro Skater 2", platform: "PS1 / N64 / PC", year: 2000, cover: "https://upload.wikimedia.org/wikipedia/en/e/e3/THPS2.jpg" },
-  { id: "contra", title: "Contra", platform: "NES / Arcade", year: 1988, cover: "https://upload.wikimedia.org/wikipedia/en/e/e2/Contra_NES_Cover.jpg" },
-  { id: "mortal-kombat-2", title: "Mortal Kombat II", platform: "SNES / Genesis / Arcade", year: 1993, cover: "https://upload.wikimedia.org/wikipedia/en/b/bf/Mortal_Kombat_II_flyer.jpg" },
-  { id: "nba-jam", title: "NBA Jam", platform: "SNES / Genesis", year: 1993, cover: "https://upload.wikimedia.org/wikipedia/en/8/88/NBA_Jam_Coverart.png" },
-  { id: "goldeneye-007", title: "GoldenEye 007", platform: "N64", year: 1997, cover: "https://upload.wikimedia.org/wikipedia/en/3/36/GoldenEye007box.jpg" },
-  { id: "diablo-ii", title: "Diablo II", platform: "PC", year: 2000, cover: "https://upload.wikimedia.org/wikipedia/en/9/93/Diablo_II_Coverart.png" },
-  { id: "simcity-2000", title: "SimCity 2000", platform: "PC / SNES", year: 1993, cover: "https://upload.wikimedia.org/wikipedia/en/8/80/SimCity_2000_coverart.jpg" },
+const FEATURED_GAMES = [
+  { id: "gta-sa", title: "Grand Theft Auto: San Andreas", platform: "PS2 / PC / Xbox", year: 2004 },
+  { id: "gta-vice-city", title: "Grand Theft Auto: Vice City", platform: "PS2 / PC", year: 2002 },
+  { id: "gta-v", title: "Grand Theft Auto V", platform: "PS3 / PS4 / Xbox 360 / Xbox One / PC", year: 2013 },
+  { id: "sims-4", title: "The Sims 4", platform: "PC / Mac / Console", year: 2014 },
+  { id: "minecraft", title: "Minecraft", platform: "PC / Multi", year: 2011 },
+  { id: "skyrim", title: "The Elder Scrolls V: Skyrim", platform: "PC / PS3 / Xbox 360", year: 2011 },
+  { id: "doom-1993", title: "DOOM (1993)", platform: "PC / Multi", year: 1993 },
+  { id: "contra", title: "Contra", platform: "NES / Arcade", year: 1988 },
+  { id: "goldeneye-007", title: "GoldenEye 007", platform: "N64", year: 1997 },
+  { id: "street-fighter-2", title: "Street Fighter II", platform: "SNES / Arcade", year: 1991 },
+  { id: "mortal-kombat-2", title: "Mortal Kombat II", platform: "SNES / Genesis / Arcade", year: 1993 },
+  { id: "sonic-3", title: "Sonic the Hedgehog 3", platform: "Sega Genesis", year: 1994 },
+  { id: "tony-hawk-pro-skater-2", title: "Tony Hawk's Pro Skater 2", platform: "PS1 / N64 / PC", year: 2000 },
+  { id: "pokemon-red-blue", title: "Pokémon Red and Blue", platform: "Game Boy", year: 1996 },
+  { id: "age-of-empires-2", title: "Age of Empires II", platform: "PC", year: 1999 },
 ];
 
-const PLATFORMS = ["All", "NES", "SNES", "N64", "PS1", "PS2", "PC", "Sega Genesis", "Arcade", "Multi"];
+const PLATFORMS = ["All", "Game Boy", "NES", "SNES", "N64", "PS1", "PS2", "PS3", "PS4", "PC", "Mac", "Xbox", "Xbox 360", "Xbox One", "Sega Genesis", "Arcade", "Multi", "Console"];
 
 // ── Storage helpers ─────────────────────────────────────────────────────────
 function getStorage() {
@@ -68,6 +92,25 @@ async function saveCheatCache(cache) {
     if (!storage) return;
     await storage.set("cheat-vault-cache", JSON.stringify(cache));
   } catch {}
+}
+
+async function resolveCover(game) {
+  if (game.cover) return game;
+
+  try {
+    const res = await fetch(`/api/search-games?q=${encodeURIComponent(game.title)}`);
+    const data = await res.json();
+    const matched = Array.isArray(data.results)
+      ? data.results.find((result) => result.title?.toLowerCase() === game.title.toLowerCase()) || data.results[0]
+      : null;
+
+    return {
+      ...game,
+      cover: matched?.cover || game.cover || null,
+    };
+  } catch {
+    return game;
+  }
 }
 
 // ── Pixel / scanline CSS ────────────────────────────────────────────────────
@@ -345,13 +388,31 @@ const STYLES = `
     transition: border-color .2s;
   }
   .cheat-item:hover { border-left-color: var(--neon); }
+  .cheat-head {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
   .cheat-code {
     font-family: var(--font-pixel);
     font-size: 9px;
     color: var(--neon3);
     letter-spacing: 1px;
-    margin-bottom: 8px;
     word-break: break-word;
+    line-height: 1.5;
+  }
+  .cheat-console {
+    flex-shrink: 0;
+    font-size: 10px;
+    color: var(--neon);
+    border: 1px solid var(--neon);
+    border-radius: 999px;
+    padding: 3px 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
   }
   .cheat-effect {
     font-size: 14px;
@@ -412,27 +473,21 @@ const STYLES = `
     .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
     .fav-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
     .modal-header { flex-wrap: wrap; }
+    .cheat-head { flex-wrap: wrap; }
   }
 `;
 
 // ── Cover image component ────────────────────────────────────────────────────
 function GameCover({ src, alt, className }) {
   const [err, setErr] = useState(false);
-  if (!src) {
-    return className?.includes("modal") ? (
-      <div className="modal-cover-placeholder">🕹️</div>
-    ) : (
-      <div className="game-cover-placeholder">{alt?.slice(0, 30) || "GAME"}</div>
-    );
-  }
-  if (err) {
-    return className?.includes("modal") ? (
-      <div className="modal-cover-placeholder">🕹️</div>
-    ) : (
-      <div className="game-cover-placeholder">{alt?.slice(0, 30)}</div>
-    );
-  }
-  return <img src={src} alt={alt} className={className} onError={() => setErr(true)} />;
+  return (
+    <img
+      src={err || !src ? DEFAULT_COVER : src}
+      alt={alt}
+      className={className}
+      onError={() => setErr(true)}
+    />
+  );
 }
 
 // ── Main App ────────────────────────────────────────────────────────────────
@@ -441,6 +496,7 @@ export default function CheatVault() {
   const [query, setQuery] = useState("");
   const [platform, setPlatform] = useState("All");
   const [favorites, setFavorites] = useState([]);
+  const [games, setGames] = useState(FEATURED_GAMES);
   const [selected, setSelected] = useState(null);
   const [cheats, setCheats] = useState(null);
   const [cheatLoading, setCheatLoading] = useState(false);
@@ -459,6 +515,21 @@ export default function CheatVault() {
       setCache(ch);
       setStorageReady(true);
     })();
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const enriched = await Promise.all(FEATURED_GAMES.map((game) => resolveCover(game)));
+      if (!cancelled) {
+        setGames(enriched);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -502,7 +573,7 @@ export default function CheatVault() {
   }, [query, tab]);
 
   // Filter games
-  const filtered = GAME_DB.filter(g => {
+  const filtered = games.filter(g => {
     const q = query.toLowerCase();
     const matchQ = !q || g.title.toLowerCase().includes(q) || g.platform.toLowerCase().includes(q);
     const matchP = platform === "All" || g.platform.includes(platform);
@@ -523,7 +594,8 @@ export default function CheatVault() {
   };
 
   const openGame = async (game, cacheSnapshot = cache) => {
-    setSelected(game);
+    const resolvedGame = await resolveCover(game);
+    setSelected(resolvedGame);
     if (cacheSnapshot[game.id]) {
       setCheats(cacheSnapshot[game.id]);
       setCheatError(null);
@@ -667,10 +739,10 @@ export default function CheatVault() {
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <GameCover src={selected.cover} alt={selected.title} className="modal-cover" />
+      <GameCover src={selected.cover || DEFAULT_COVER} alt={selected.title} className="modal-cover" />
               <div className="modal-title-group">
                 <div className="modal-title">{selected.title}</div>
-                <div className="modal-platform">{selected.platform} · {selected.year}</div>
+                <div className="modal-platform">{selected.platform || selected.description || "Platform info unavailable"}{selected.year ? ` · ${selected.year}` : ""}</div>
                 <div className="btn-row">
                   <button
                     className={`btn ${isFav(selected.id) ? "btn-red" : "btn-neon"}`}
@@ -704,7 +776,10 @@ export default function CheatVault() {
               )}
               {cheats && cheats.map((c, i) => (
                 <div key={i} className="cheat-item">
-                  <div className="cheat-code">{c.code}</div>
+                  <div className="cheat-head">
+                    <div className="cheat-code">{c.code}</div>
+                    <div className="cheat-console">{c.console || selected.platform || "Console unknown"}</div>
+                  </div>
                   <div className="cheat-effect">{c.effect}</div>
                   <div className="cheat-how">📋 {c.howTo}</div>
                 </div>
