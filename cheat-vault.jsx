@@ -28,21 +28,39 @@ const DEFAULT_COVER =
 
 // ── Seed game database ──────────────────────────────────────────────────────
 const FEATURED_GAMES = [
-  { id: "gta-sa", title: "Grand Theft Auto: San Andreas", platform: "PS2 / PC / Xbox", year: 2004 },
-  { id: "gta-vice-city", title: "Grand Theft Auto: Vice City", platform: "PS2 / PC", year: 2002 },
-  { id: "gta-v", title: "Grand Theft Auto V", platform: "PS3 / PS4 / Xbox 360 / Xbox One / PC", year: 2013 },
-  { id: "sims-4", title: "The Sims 4", platform: "PC / Mac / Console", year: 2014 },
-  { id: "minecraft", title: "Minecraft", platform: "PC / Multi", year: 2011 },
-  { id: "skyrim", title: "The Elder Scrolls V: Skyrim", platform: "PC / PS3 / Xbox 360", year: 2011 },
-  { id: "doom-1993", title: "DOOM (1993)", platform: "PC / Multi", year: 1993 },
-  { id: "contra", title: "Contra", platform: "NES / Arcade", year: 1988 },
-  { id: "goldeneye-007", title: "GoldenEye 007", platform: "N64", year: 1997 },
-  { id: "street-fighter-2", title: "Street Fighter II", platform: "SNES / Arcade", year: 1991 },
-  { id: "mortal-kombat-2", title: "Mortal Kombat II", platform: "SNES / Genesis / Arcade", year: 1993 },
-  { id: "sonic-3", title: "Sonic the Hedgehog 3", platform: "Sega Genesis", year: 1994 },
-  { id: "tony-hawk-pro-skater-2", title: "Tony Hawk's Pro Skater 2", platform: "PS1 / N64 / PC", year: 2000 },
-  { id: "pokemon-red-blue", title: "Pokémon Red and Blue", platform: "Game Boy", year: 1996 },
-  { id: "age-of-empires-2", title: "Age of Empires II", platform: "PC", year: 1999 },
+  { id: "gta-sa", title: "Grand Theft Auto: San Andreas", platform: "PS2 / PC / Xbox", year: 2004, cover: "https://upload.wikimedia.org/wikipedia/en/c/c4/GTASABOX.jpg" },
+  { id: "gta-vice-city", title: "Grand Theft Auto: Vice City", platform: "PS2 / PC", year: 2002, cover: "https://upload.wikimedia.org/wikipedia/en/c/ce/Vice-city-cover.jpg" },
+  { id: "gta-v", title: "Grand Theft Auto V", platform: "PS3 / PS4 / Xbox 360 / Xbox One / PC", year: 2013, cover: "https://upload.wikimedia.org/wikipedia/en/a/a5/Grand_Theft_Auto_V.png" },
+  { id: "sims-4", title: "The Sims 4", platform: "PC / Mac / Console", year: 2014, cover: "https://upload.wikimedia.org/wikipedia/en/7/7f/Sims4_Rebrand.png" },
+  { id: "minecraft", title: "Minecraft", platform: "PC / Multi", year: 2011, cover: "https://upload.wikimedia.org/wikipedia/en/5/51/Minecraft_cover.png" },
+  { id: "skyrim", title: "The Elder Scrolls V: Skyrim", platform: "PC / PS3 / Xbox 360", year: 2011, cover: "https://upload.wikimedia.org/wikipedia/en/1/15/The_Elder_Scrolls_V_Skyrim_cover.png" },
+  { id: "doom-1993", title: "DOOM (1993)", platform: "PC / Multi", year: 1993, cover: "https://upload.wikimedia.org/wikipedia/en/5/57/Doom_cover_art.jpg" },
+  { id: "contra", title: "Contra", platform: "NES / Arcade", year: 1988, cover: "https://upload.wikimedia.org/wikipedia/en/6/65/Contra_cover.jpg" },
+  { id: "goldeneye-007", title: "GoldenEye 007", platform: "N64", year: 1997, cover: "https://upload.wikimedia.org/wikipedia/en/1/13/GoldenEye_007_N64_cover.jpg" },
+  { id: "street-fighter-2", title: "Street Fighter II", platform: "SNES / Arcade", year: 1991, cover: "https://upload.wikimedia.org/wikipedia/en/1/1d/SF2_JPN_flyer.jpg" },
+  { id: "mortal-kombat-2", title: "Mortal Kombat II", platform: "SNES / Genesis / Arcade", year: 1993, cover: "https://upload.wikimedia.org/wikipedia/en/d/df/Mortal_Kombat_II_boxart.png" },
+  { id: "sonic-3", title: "Sonic the Hedgehog 3", platform: "Sega Genesis", year: 1994, cover: "https://upload.wikimedia.org/wikipedia/en/0/07/Sonic3-box-us-225.jpg" },
+  { id: "tony-hawk-pro-skater-2", title: "Tony Hawk's Pro Skater 2", platform: "PS1 / N64 / PC", year: 2000, cover: "https://upload.wikimedia.org/wikipedia/en/4/41/Tony_Hawk%27s_Pro_Skater_2_cover.png" },
+  { id: "pokemon-red-blue", title: "Pokémon Red and Blue", platform: "Game Boy", year: 1996, cover: "https://upload.wikimedia.org/wikipedia/en/a/af/Pok%C3%A9mon_Red_and_Blue_cover_art.webp" },
+  { id: "age-of-empires-2", title: "Age of Empires II", platform: "PC", year: 1999, cover: "https://upload.wikimedia.org/wikipedia/en/5/56/Age_of_Empires_II_-_The_Age_of_Kings_Coverart.png" },
+];
+
+const SEARCH_BACKUP_GAMES = [
+  { id: "toy-story-1", title: "Toy Story (video game)", platform: "SNES / Genesis / PC", year: 1995, cover: "https://upload.wikimedia.org/wikipedia/en/e/e5/Toy_Story_Video_Game_SNES.png" },
+  { id: "toy-story-2", title: "Toy Story 2 (video game)", platform: "PS1 / N64 / GBC", year: 1999, cover: "https://upload.wikimedia.org/wikipedia/en/5/5b/ToyStory2_videogame_gbc_cover.jpg" },
+  { id: "toy-story-3", title: "Toy Story 3 (video game)", platform: "PS3 / Xbox 360 / Wii", year: 2010, cover: "https://upload.wikimedia.org/wikipedia/en/6/6c/Toy_Story_3_Cover_Art.jpg" },
+  { id: "toy-story-mania", title: "Toy Story Mania!", platform: "Wii / PS3 / Xbox 360", year: 2009, cover: "https://upload.wikimedia.org/wikipedia/en/9/9e/Toy_Story_Mania.jpg" },
+  { id: "toy-story-racer", title: "Toy Story Racer", platform: "PS1", year: 2000, cover: "https://upload.wikimedia.org/wikipedia/en/e/e1/Toy_Story_Racer.jpg" },
+  { id: "toy-story-2-buzz", title: "Toy Story 2: Buzz Lightyear to the Rescue", platform: "N64 / PS1 / PC", year: 1999, cover: "https://upload.wikimedia.org/wikipedia/en/2/21/Buzz_Lightyear_to_the_Rescue_art.png" },
+  { id: "super-mario-world", title: "Super Mario World", platform: "SNES", year: 1990, cover: "https://upload.wikimedia.org/wikipedia/en/a/a0/Super_Mario_World_Coverart.png" },
+  { id: "super-mario-64", title: "Super Mario 64", platform: "N64", year: 1996, cover: "https://upload.wikimedia.org/wikipedia/en/1/1b/Super_Mario_64.jpg" },
+  { id: "pokemon-yellow", title: "Pokémon Yellow", platform: "Game Boy", year: 1998, cover: "https://upload.wikimedia.org/wikipedia/en/b/bd/Pok%C3%A9mon_Yellow_Version.png" },
+  { id: "pokemon-silver", title: "Pokémon Silver", platform: "Game Boy Color", year: 1999, cover: "https://upload.wikimedia.org/wikipedia/en/3/3c/Pokemon_Silver.png" },
+  { id: "final-fantasy-vii", title: "Final Fantasy VII", platform: "PS1 / PC", year: 1997, cover: "https://upload.wikimedia.org/wikipedia/en/5/5f/Final_Fantasy_VII_Box_Art.jpg" },
+  { id: "half-life", title: "Half-Life", platform: "PC", year: 1998, cover: "https://upload.wikimedia.org/wikipedia/en/f/fa/Half-Life_Cover_Art.jpg" },
+  { id: "zelda-a-link-to-the-past", title: "The Legend of Zelda: A Link to the Past", platform: "SNES", year: 1991, cover: "https://upload.wikimedia.org/wikipedia/en/3/3b/The_Legend_of_Zelda_A_Link_to_the_Past_SNES_Game_Cover.jpg" },
+  { id: "metroid", title: "Metroid", platform: "NES", year: 1986, cover: "https://upload.wikimedia.org/wikipedia/en/3/37/Metroid_cover.jpg" },
+  { id: "street-fighter-alpha-3", title: "Street Fighter Alpha 3", platform: "Arcade / PS1", year: 1998, cover: "https://upload.wikimedia.org/wikipedia/en/3/3c/Street_Fighter_Alpha_3_arcade_flyer.jpg" },
 ];
 
 const PLATFORMS = ["All", "Game Boy", "NES", "SNES", "N64", "PS1", "PS2", "PS3", "PS4", "PC", "Mac", "Xbox", "Xbox 360", "Xbox One", "Sega Genesis", "Arcade", "Multi", "Console"];
@@ -92,25 +110,6 @@ async function saveCheatCache(cache) {
     if (!storage) return;
     await storage.set("cheat-vault-cache", JSON.stringify(cache));
   } catch {}
-}
-
-async function resolveCover(game) {
-  if (game.cover) return game;
-
-  try {
-    const res = await fetch(`/api/search-games?q=${encodeURIComponent(game.title)}`);
-    const data = await res.json();
-    const matched = Array.isArray(data.results)
-      ? data.results.find((result) => result.title?.toLowerCase() === game.title.toLowerCase()) || data.results[0]
-      : null;
-
-    return {
-      ...game,
-      cover: matched?.cover || game.cover || null,
-    };
-  } catch {
-    return game;
-  }
 }
 
 // ── Pixel / scanline CSS ────────────────────────────────────────────────────
@@ -251,6 +250,27 @@ const STYLES = `
     transform: translateY(-4px);
     border-color: var(--neon);
     box-shadow: 0 0 20px rgba(0,255,204,0.2), 0 8px 24px rgba(0,0,0,0.5);
+  }
+  .game-card-top {
+    position: absolute;
+    inset: 8px 8px auto auto;
+    z-index: 2;
+  }
+  .card-save-btn {
+    font-family: var(--font-pixel);
+    font-size: 8px;
+    background: rgba(10, 10, 15, 0.85);
+    color: var(--neon);
+    border: 1px solid var(--neon);
+    border-radius: 999px;
+    padding: 6px 8px;
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+  .card-save-btn.saved {
+    color: #000;
+    background: var(--neon2);
+    border-color: var(--neon2);
   }
   .game-cover {
     width: 100%; aspect-ratio: 3/4; object-fit: cover;
@@ -496,7 +516,7 @@ export default function CheatVault() {
   const [query, setQuery] = useState("");
   const [platform, setPlatform] = useState("All");
   const [favorites, setFavorites] = useState([]);
-  const [games, setGames] = useState(FEATURED_GAMES);
+  const [games, setGames] = useState([...FEATURED_GAMES, ...SEARCH_BACKUP_GAMES]);
   const [selected, setSelected] = useState(null);
   const [cheats, setCheats] = useState(null);
   const [cheatLoading, setCheatLoading] = useState(false);
@@ -518,18 +538,7 @@ export default function CheatVault() {
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      const enriched = await Promise.all(FEATURED_GAMES.map((game) => resolveCover(game)));
-      if (!cancelled) {
-        setGames(enriched);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+    setGames([...FEATURED_GAMES, ...SEARCH_BACKUP_GAMES]);
   }, []);
 
   useEffect(() => {
@@ -582,7 +591,7 @@ export default function CheatVault() {
 
   const isFav = (id) => favorites.some(f => f.id === id);
   const showingRemoteSearch = tab === "browse" && query.trim().length > 0;
-  const browseItems = showingRemoteSearch ? remoteResults : filtered;
+  const browseItems = showingRemoteSearch && remoteResults.length > 0 ? remoteResults : filtered;
 
   const toggleFav = (game, e) => {
     e?.stopPropagation();
@@ -594,8 +603,7 @@ export default function CheatVault() {
   };
 
   const openGame = async (game, cacheSnapshot = cache) => {
-    const resolvedGame = await resolveCover(game);
-    setSelected(resolvedGame);
+    setSelected(game);
     if (cacheSnapshot[game.id]) {
       setCheats(cacheSnapshot[game.id]);
       setCheatError(null);
@@ -692,6 +700,14 @@ export default function CheatVault() {
               <div className="grid">
                 {browseItems.map(game => (
                   <div key={game.id} className="game-card" onClick={() => openGame(game)}>
+                    <div className="game-card-top">
+                      <button
+                        className={`card-save-btn ${isFav(game.id) ? "saved" : ""}`}
+                        onClick={(e) => toggleFav(game, e)}
+                      >
+                        {isFav(game.id) ? "Saved" : "Save"}
+                      </button>
+                    </div>
                     {isFav(game.id) && <div className="fav-badge">★</div>}
                     <GameCover src={game.cover} alt={game.title} className="game-cover" />
                     <div className="game-info">
@@ -739,7 +755,7 @@ export default function CheatVault() {
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-      <GameCover src={selected.cover || DEFAULT_COVER} alt={selected.title} className="modal-cover" />
+              <GameCover src={selected.cover || DEFAULT_COVER} alt={selected.title} className="modal-cover" />
               <div className="modal-title-group">
                 <div className="modal-title">{selected.title}</div>
                 <div className="modal-platform">{selected.platform || selected.description || "Platform info unavailable"}{selected.year ? ` · ${selected.year}` : ""}</div>
