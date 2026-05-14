@@ -7,3 +7,8 @@
   from = "/api/cheats"
   to = "/.netlify/functions/cheats"
   status = 200
+
+[[redirects]]
+  from = "/api/search-games"
+  to = "/.netlify/functions/search-games"
+  status = 200

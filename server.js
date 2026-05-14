@@ -8,6 +8,43 @@ const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
 
 app.use(express.json());
 
+app.get('/api/search-games', async (req, res) => {
+  try {
+    const q = String(req.query.q || '').trim();
+    if (q.length < 2) {
+      return res.json({ results: [] });
+    }
+
+    const url = new URL('https://www.wikidata.org/w/api.php');
+    url.searchParams.set('action', 'wbsearchentities');
+    url.searchParams.set('search', q);
+    url.searchParams.set('language', 'en');
+    url.searchParams.set('format', 'json');
+    url.searchParams.set('origin', '*');
+    url.searchParams.set('type', 'item');
+    url.searchParams.set('limit', '12');
+
+    const response = await fetch(url);
+    const data = await response.json();
+    const results = Array.isArray(data.search)
+      ? data.search
+          .filter((item) => /video game|game|arcade|console|platform/i.test(item.description || ''))
+          .map((item) => ({
+            id: item.id,
+            title: item.label,
+            description: item.description || 'Video game',
+            cover: null,
+            source: 'wikidata',
+          }))
+      : [];
+
+    return res.json({ results });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return res.status(500).json({ error: message });
+  }
+});
+
 app.post('/api/cheats', async (req, res) => {
   try {
     const { game } = req.body || {};
@@ -32,7 +69,7 @@ app.post('/api/cheats', async (req, res) => {
         },
         {
           role: 'user',
-          content: `List the most famous or useful cheat codes for "${game.title}" (${game.platform}, ${game.year}). Include 5-12 cheats. If a platform has multiple input methods, pick the most common one.`,
+          content: `List the most famous or useful cheat codes for "${game.title}"${game.platform || game.year || game.description ? ` (${[game.platform, game.year, game.description].filter(Boolean).join(', ')})` : ''}. Include 5-12 cheats. If a platform has multiple input methods, pick the most common one.`,
         },
       ],
       text: {

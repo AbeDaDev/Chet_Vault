@@ -418,6 +418,13 @@ const STYLES = `
 // ── Cover image component ────────────────────────────────────────────────────
 function GameCover({ src, alt, className }) {
   const [err, setErr] = useState(false);
+  if (!src) {
+    return className?.includes("modal") ? (
+      <div className="modal-cover-placeholder">🕹️</div>
+    ) : (
+      <div className="game-cover-placeholder">{alt?.slice(0, 30) || "GAME"}</div>
+    );
+  }
   if (err) {
     return className?.includes("modal") ? (
       <div className="modal-cover-placeholder">🕹️</div>
@@ -440,6 +447,9 @@ export default function CheatVault() {
   const [cheatError, setCheatError] = useState(null);
   const [cache, setCache] = useState({});
   const [storageReady, setStorageReady] = useState(false);
+  const [remoteResults, setRemoteResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState(null);
 
   // Load persisted data
   useEffect(() => {
@@ -451,6 +461,46 @@ export default function CheatVault() {
     })();
   }, []);
 
+  useEffect(() => {
+    if (tab !== "browse") return;
+
+    const q = query.trim();
+    if (!q) {
+      setRemoteResults([]);
+      setSearchLoading(false);
+      setSearchError(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      setSearchLoading(true);
+      setSearchError(null);
+      try {
+        const res = await fetch(`/api/search-games?q=${encodeURIComponent(q)}`, {
+          signal: controller.signal,
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data?.error || "Search failed.");
+        }
+        setRemoteResults(Array.isArray(data.results) ? data.results : []);
+      } catch (error) {
+        if (error?.name !== "AbortError") {
+          setSearchError("Search could not load game results.");
+          setRemoteResults([]);
+        }
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 300);
+
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [query, tab]);
+
   // Filter games
   const filtered = GAME_DB.filter(g => {
     const q = query.toLowerCase();
@@ -460,6 +510,8 @@ export default function CheatVault() {
   });
 
   const isFav = (id) => favorites.some(f => f.id === id);
+  const showingRemoteSearch = tab === "browse" && query.trim().length > 0;
+  const browseItems = showingRemoteSearch ? remoteResults : filtered;
 
   const toggleFav = (game, e) => {
     e?.stopPropagation();
@@ -541,22 +593,41 @@ export default function CheatVault() {
                 {PLATFORMS.map(p => <option key={p}>{p}</option>)}
               </select>
             </div>
-            <div className="section-label">// {filtered.length} GAMES FOUND</div>
-            {filtered.length === 0 ? (
+            <div className="section-label">
+              // {showingRemoteSearch ? `${remoteResults.length} ONLINE RESULTS` : `${filtered.length} GAMES FOUND`}
+            </div>
+            {showingRemoteSearch && searchLoading ? (
+              <div className="empty-state">
+                <div className="empty-icon">⌛</div>
+                <div className="empty-title">SEARCHING</div>
+                <div style={{ fontSize: 12 }}>Looking up game titles...</div>
+              </div>
+            ) : showingRemoteSearch && searchError ? (
+              <div className="empty-state">
+                <div className="empty-icon">⚠️</div>
+                <div className="empty-title">SEARCH ERROR</div>
+                <div style={{ fontSize: 12 }}>{searchError}</div>
+              </div>
+            ) : browseItems.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-icon">🔍</div>
                 <div className="empty-title">NO RESULTS</div>
-                <div style={{ fontSize: 12 }}>Try a different search</div>
+                <div style={{ fontSize: 12 }}>
+                  {showingRemoteSearch ? "Try a broader game title" : "Try a different search"}
+                </div>
               </div>
             ) : (
               <div className="grid">
-                {filtered.map(game => (
+                {browseItems.map(game => (
                   <div key={game.id} className="game-card" onClick={() => openGame(game)}>
                     {isFav(game.id) && <div className="fav-badge">★</div>}
                     <GameCover src={game.cover} alt={game.title} className="game-cover" />
                     <div className="game-info">
                       <div className="game-title">{game.title}</div>
-                      <div className="game-meta">{game.platform} · {game.year}</div>
+                      <div className="game-meta">
+                        {game.platform ? `${game.platform} · ` : ""}
+                        {game.year || game.description || "Game result"}
+                      </div>
                     </div>
                   </div>
                 ))}

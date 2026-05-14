@@ -11,7 +11,7 @@ export default async (req) => {
     }
 
     const { game } = await req.json();
-    if (!game?.title || !game?.platform || !game?.year) {
+    if (!game?.title) {
       return json({ error: "Missing game data." }, 400);
     }
 
@@ -28,7 +28,7 @@ export default async (req) => {
         },
         {
           role: "user",
-          content: `List the most famous or useful cheat codes for "${game.title}" (${game.platform}, ${game.year}). Include 5-12 cheats. If a platform has multiple input methods, pick the most common one.`,
+          content: `List the most famous or useful cheat codes for "${game.title}"${game.platform || game.year || game.description ? ` (${[game.platform, game.year, game.description].filter(Boolean).join(', ')})` : ''}. Include 5-12 cheats. If a platform has multiple input methods, pick the most common one.`,
         },
       ],
       text: {
